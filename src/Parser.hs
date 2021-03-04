@@ -2,7 +2,6 @@
 module Parser (eitherParse, prettyPrintAtom) where
 
 -- | Base imports
-import           Control.Applicative (empty, some)
 import           Data.Maybe          (fromMaybe)
 import           Data.Text           (Text)
 import qualified Data.Text as Text
@@ -10,7 +9,8 @@ import           Data.Void           (Void)
 
 -- | Third-party imports
 import           Text.Megaparsec      (Parsec, parse, errorBundlePretty
-                                      , choice, many, optional)
+                                      , empty, some, choice, many, optional
+                                      , someTill_, try, sepBy, manyTill)
 import           Text.Megaparsec.Char (space1, char, alphaNumChar, digitChar
                                       , lowerChar)
 import qualified Text.Megaparsec.Char.Lexer as Lexer
@@ -60,23 +60,29 @@ prettyPrintAtom (Atom category package_name version suffixes maybeRevision) =
 -- | Parses a single atom
 parseAtom :: Parser Atom
 parseAtom = do
-    category <- parseWord
+    category    <- parseCategory
+    -- packageName <- parseWord
+    -- version <- parseVersionNumber
     pure (Atom category "not_implemented" "not_implemented" [] Nothing)
 
--- | Parses a "word", i.e. a valid "name" per the gentoo PMS
-parseWord :: Parser Text
-parseWord = do
-    firstChar <- parseFirst
-    balance   <- Text.concat <$> many (choice [ parseFirst, parseExtra ])
-    pure (firstChar <> balance)
+-- | Parses the category, which precedes the '/'
+parseCategory :: Parser Text
+parseCategory = do
+    firstLetter <- parseFirstChar
+    moreLetters <- Text.concat <$> manyTill parseAfterChar (char '/')
+    pure (firstLetter <> moreLetters)
 
 -- | Parses what PMS allows as the first character in names [A-Za-z0-9_]
-parseFirst :: Parser Text
-parseFirst = Text.singleton <$> choice [ alphaNumChar, char '_']
+parseFirstChar :: Parser Text
+parseFirstChar = Text.singleton <$> choice [ alphaNumChar, char '_']
 
 -- | After the first character, the PMS allows these extra characters too
-parseExtra :: Parser Text
-parseExtra = Text.singleton <$> choice [char '-', char '.', char '+']
+parseAfterChar :: Parser Text
+parseAfterChar = choice [ parseFirstChar
+                        , Text.singleton <$> char '-'
+                        , Text.singleton <$> char '.'
+                        , Text.singleton <$> char '+'
+                        ]
 
 -- | Parses the numeric portion of a version
 parseVersionNumber :: Parser Text
