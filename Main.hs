@@ -1,8 +1,9 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import qualified Parser (someFunc)
+import qualified Parser (eitherParse)
 
 main :: IO ()
 main = do
   putStrLn "Hello, Haskell!"
-  Parser.someFunc
+  print $ Parser.eitherParse "dev-lib/foo-1.0"
