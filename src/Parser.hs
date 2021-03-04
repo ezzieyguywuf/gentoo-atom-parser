@@ -11,7 +11,7 @@ import           Data.Void           (Void)
 import           Text.Megaparsec      (Parsec, parse, errorBundlePretty
                                       , empty, some, choice, many, optional
                                       , someTill_, try, sepBy1, manyTill, eof
-                                      , (<?>), lookAhead)
+                                      , lookAhead)
 import           Text.Megaparsec.Char (space1, char, alphaNumChar, digitChar
                                       , lowerChar)
 import qualified Text.Megaparsec.Char.Lexer as Lexer
@@ -43,7 +43,7 @@ data Suffix =
 
 -- | Either succesfully parse the input text, or return an helpful error message
 eitherParse :: Text -> Either Text Atom
-eitherParse text = either err Right (parse (parseAtom <?> "atom") "" text)
+eitherParse text = either err Right (parse parseAtom "" text)
     where err = Left . Text.pack . errorBundlePretty
 
 -- | Turns an Atom into pretty text
@@ -61,10 +61,10 @@ prettyPrintAtom (Atom category package_name version suffixes maybeRevision) =
 -- | Parses a single atom
 parseAtom :: Parser Atom
 parseAtom = do
-    category    <- parseCategory <?> "category"
-    packageName <- parsePackageName <?> "package name"
+    category    <- parseCategory
+    packageName <- parsePackageName
     char '-'
-    version <- parseVersion <?> "version"
+    version <- parseVersion
     pure (Atom category packageName version [] Nothing)
 
 -- | Parses the category, which precedes the '/'
@@ -79,12 +79,12 @@ parseCategory = do
 parsePackageName :: Parser Text
 parsePackageName = do
     firstLetter <- parseFirstChar
-    moreLetters <- (Text.concat <$> manyTill parseAfterChar (lookAhead (char '-' >> parseVersionNumber))) <?> "more letters"
+    moreLetters <- Text.concat <$> manyTill parseAfterChar (lookAhead . try $ char '-' >> parseVersion)
     pure (firstLetter <> moreLetters)
 
 -- | Parses what PMS allows as the first character in names [A-Za-z0-9_]
 parseFirstChar :: Parser Text
-parseFirstChar = Text.singleton <$> choice [ alphaNumChar, char '_'] <?> "first char"
+parseFirstChar = Text.singleton <$> choice [ alphaNumChar, char '_']
 
 -- | After the first character, the PMS allows these extra characters too
 parseAfterChar :: Parser Text
@@ -92,12 +92,13 @@ parseAfterChar = choice [ parseFirstChar
                         , Text.singleton <$> char '-'
                         , Text.singleton <$> char '.'
                         , Text.singleton <$> char '+'
-                        ] <?> "after char"
+                        ]
 
 parseVersion :: Parser Text
 parseVersion = do
     versionNumber <- parseVersionNumber
     suffix        <- maybe "" Text.singleton <$> optional lowerChar
+    eof
     pure (versionNumber <> suffix)
 
 -- | Parses the numeric portion of a version
