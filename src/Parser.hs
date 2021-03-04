@@ -2,11 +2,14 @@
 module Parser (eitherParse) where
 
 -- | Base imports
-import Data.Void (Void)
-import Data.Text (Text)
+import Data.Void           (Void)
+import Data.Text           (Text, pack)
+import Control.Applicative (empty)
 
 -- | Third-party imports
-import Text.Megaparsec (Parsec)
+import           Text.Megaparsec      (Parsec, parse, errorBundlePretty)
+import           Text.Megaparsec.Char (space1)
+import qualified Text.Megaparsec.Char.Lexer as Lexer
 
 -- | Our Data definitions
 -------------------------
@@ -32,5 +35,20 @@ data Suffix =
 
 -- | Function Definitions
 -------------------------
+
+-- | Either succesfully parse the input text, or return an helpful error message
 eitherParse :: Text -> Either Text Atom
-eitherParse _ = Left "Not implemented"
+eitherParse text = either err Right (parse parseAtom "" text)
+    where err = Left . pack . errorBundlePretty
+
+-- | Parses a single atom
+parseAtom :: Parser Atom
+parseAtom = pure (Atom "not" "implemented" "1.0.0" [] Nothing)
+
+-- | Used to consume any whitespace
+spaceConsumer :: Parser ()
+spaceConsumer = Lexer.space space1 empty empty
+
+-- | Use the given parser to parse a "lexeme", consuming any space after
+lexeme :: Parser a -> Parser a
+lexeme = Lexer.lexeme spaceConsumer
