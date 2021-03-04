@@ -10,8 +10,9 @@ import           Data.Void           (Void)
 
 -- | Third-party imports
 import           Text.Megaparsec      (Parsec, parse, errorBundlePretty
-                                      , choice, many)
-import           Text.Megaparsec.Char (space1, char, alphaNumChar)
+                                      , choice, many, optional)
+import           Text.Megaparsec.Char (space1, char, alphaNumChar, digitChar
+                                      , lowerChar)
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 
 -- | Our Data definitions
@@ -76,6 +77,21 @@ parseFirst = Text.singleton <$> choice [ alphaNumChar, char '_']
 -- | After the first character, the PMS allows these extra characters too
 parseExtra :: Parser Text
 parseExtra = Text.singleton <$> choice [char '-', char '.', char '+']
+
+-- | Parses the numeric portion of a version
+parseVersionNumber :: Parser Text
+parseVersionNumber = do
+    firstPart <- parseInteger
+    -- many returns zero or more matches
+    backEnd   <- many  (char '.' >> Text.append "." <$> parseInteger)
+    -- empty string or single lower-chase character
+    suffix    <- maybe "" Text.singleton <$> optional lowerChar
+    -- glue it all back together
+    pure (Text.concat (firstPart : (backEnd <> [suffix])))
+
+-- | Parses...an integer
+parseInteger :: Parser Text
+parseInteger = Text.pack <$> some digitChar
 
 -- | Used to consume any whitespace
 spaceConsumer :: Parser ()
