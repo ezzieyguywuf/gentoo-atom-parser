@@ -1,0 +1,2 @@
+--command="cabal repl exe:gentoo-atom-parser"
+--test ":main"
