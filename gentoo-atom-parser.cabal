@@ -20,6 +20,7 @@ executable gentoo-atom-parser
     main-is:          Main.hs
     build-depends:
         , base                ^>=4.14.1.0
+        , text                ^>=1.2.4.1
         , gentoo-atom-parser
     hs-source-dirs:    app
     default-language: Haskell2010

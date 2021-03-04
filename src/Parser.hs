@@ -1,14 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Parser (eitherParse) where
+module Parser (eitherParse, prettyPrintAtom) where
 
 -- | Base imports
-import Data.Void           (Void)
-import Data.Text           (Text, pack)
-import Control.Applicative (empty)
+import           Control.Applicative (empty, some)
+import           Data.Maybe          (fromMaybe)
+import           Data.Text           (Text)
+import qualified Data.Text as Text
+import           Data.Void           (Void)
 
 -- | Third-party imports
-import           Text.Megaparsec      (Parsec, parse, errorBundlePretty)
-import           Text.Megaparsec.Char (space1)
+import           Text.Megaparsec      (Parsec, parse, errorBundlePretty, choice)
+import           Text.Megaparsec.Char (space1, char, alphaNumChar)
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 
 -- | Our Data definitions
@@ -17,33 +19,51 @@ type Parser = Parsec Void Text
 
 -- | The fundamental data type that we're trying to parse
 data Atom =
-    Atom { category     :: Text
-         , package_name :: Text
-         , version      :: Text
-         , suffixes     :: [Suffix]
-         , revision     :: Maybe Text
+    Atom { getCategory     :: Text
+         , getPackageName  :: Text
+         , getVersion      :: Text
+         , getSuffixes     :: [Suffix]
+         , getRevision     :: Maybe Text
          } deriving (Show)
 
 -- | Per the gentoo Package Manager Specification, section 3.2
 data Suffix =
-      Alpha Text
-    | Beta  Text
-    | Pre   Text
-    | RC    Text
-    | P     Text
+      Alpha { getSuffix :: Text}
+    | Beta  { getSuffix :: Text}
+    | Pre   { getSuffix :: Text}
+    | RC    { getSuffix :: Text}
+    | P     { getSuffix :: Text}
     deriving (Show)
 
--- | Function Definitions
+-- | Exported Function Definitions
 -------------------------
 
 -- | Either succesfully parse the input text, or return an helpful error message
 eitherParse :: Text -> Either Text Atom
 eitherParse text = either err Right (parse parseAtom "" text)
-    where err = Left . pack . errorBundlePretty
+    where err = Left . Text.pack . errorBundlePretty
+
+-- | Turns an Atom into pretty text
+prettyPrintAtom :: Atom -> Text
+prettyPrintAtom (Atom category package_name version suffixes maybeRevision) =
+    Text.pack "Category = " <> category <> Text.pack "\n" <>
+    Text.pack "Package Name = " <> package_name <> Text.pack "\n" <>
+    Text.pack "Version = " <> version <> Text.pack "\n" <>
+    Text.pack "suffixes = " <> (Text.intercalate "." . map getSuffix) suffixes <>
+    Text.pack "revision = " <> fromMaybe (Text.pack "r0") maybeRevision
+
+-- | Internal Function Definitions
+-------------------------
 
 -- | Parses a single atom
 parseAtom :: Parser Atom
-parseAtom = pure (Atom "not" "implemented" "1.0.0" [] Nothing)
+parseAtom = do
+    category <- parseWord
+    pure (Atom category "not_implemented" "not_implemented" [] Nothing)
+
+-- | Parses what we'll call a "word", [A-Za-z0-9_]
+parseWord :: Parser Text
+parseWord = Text.pack <$> some (choice [ alphaNumChar, char '_'])
 
 -- | Used to consume any whitespace
 spaceConsumer :: Parser ()
