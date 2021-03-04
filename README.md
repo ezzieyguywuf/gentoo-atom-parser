@@ -28,3 +28,36 @@ meantime, you can run the executable with:
 ```sh
 cabal run exe:gentoo-atom-parser
 ```
+
+Results
+=======
+
+It's currently only a proof-of-concept, so it doesn't accept command-line
+arguments or anything. You can add more atoms to try to parse to Main.hs 
+
+Here's some sample output/results though:
+
+```sh
+Hello, Haskell!
+Trying to parse dev-lib/foo-1.0
+    Category     = dev-lib
+    Package Name = foo
+    Version      = 1.0
+    suffixes     = 
+    revision     = r0
+
+Trying to parse dev-lib/bar-100dpi-2.0
+    Category     = dev-lib
+    Package Name = bar
+    Version      = 100d
+    suffixes     = 
+    revision     = r0
+
+Trying to parse dev-lib/baz-3g
+    Category     = dev-lib
+    Package Name = baz
+    Version      = 3g
+    suffixes     = 
+    revision     = r0
+
+```
