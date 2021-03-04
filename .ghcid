@@ -1,5 +1,4 @@
 --command="cabal repl exe:gentoo-atom-parser"
---reload=src
---reload=app
---reload=tests
+--restart=src
+--restart=app
 --test ":main"
