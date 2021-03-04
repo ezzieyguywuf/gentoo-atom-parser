@@ -7,6 +7,9 @@ author:             Wolfgang E. Sanyer
 maintainer:         WolfgangESanyer@gmail.com
 extra-source-files: CHANGELOG.md
 
+Comman all
+    ghc-options: -Wall
+
 library
     exposed-modules:  Parser
     build-depends:

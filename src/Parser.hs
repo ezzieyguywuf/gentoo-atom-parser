@@ -9,7 +9,8 @@ import qualified Data.Text as Text
 import           Data.Void           (Void)
 
 -- | Third-party imports
-import           Text.Megaparsec      (Parsec, parse, errorBundlePretty, choice)
+import           Text.Megaparsec      (Parsec, parse, errorBundlePretty
+                                      , choice, many)
 import           Text.Megaparsec.Char (space1, char, alphaNumChar)
 import qualified Text.Megaparsec.Char.Lexer as Lexer
 
@@ -61,9 +62,20 @@ parseAtom = do
     category <- parseWord
     pure (Atom category "not_implemented" "not_implemented" [] Nothing)
 
--- | Parses what we'll call a "word", [A-Za-z0-9_]
+-- | Parses a "word", i.e. a valid "name" per the gentoo PMS
 parseWord :: Parser Text
-parseWord = Text.pack <$> some (choice [ alphaNumChar, char '_'])
+parseWord = do
+    firstChar <- parseFirst
+    balance   <- Text.concat <$> many (choice [ parseFirst, parseExtra ])
+    pure (firstChar <> balance)
+
+-- | Parses what PMS allows as the first character in names [A-Za-z0-9_]
+parseFirst :: Parser Text
+parseFirst = Text.singleton <$> choice [ alphaNumChar, char '_']
+
+-- | After the first character, the PMS allows these extra characters too
+parseExtra :: Parser Text
+parseExtra = Text.singleton <$> choice [char '-', char '.', char '+']
 
 -- | Used to consume any whitespace
 spaceConsumer :: Parser ()
