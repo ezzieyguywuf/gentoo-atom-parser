@@ -48,8 +48,8 @@ Trying to parse dev-lib/foo-1.0
 
 Trying to parse dev-lib/bar-100dpi-2.0
     Category     = dev-lib
-    Package Name = bar
-    Version      = 100d
+    Package Name = bar-100dpi
+    Version      = 2.0
     suffixes     = 
     revision     = r0
 
