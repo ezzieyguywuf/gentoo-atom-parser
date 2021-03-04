@@ -1,0 +1,26 @@
+cabal-version:       2.4
+name:                gentoo-atom-parser
+version:             0.1.0.0
+license:             MPL-2.0
+license-file:        LICENSE
+author:              Wolfgang E. Sanyer
+maintainer:          WolfgangESanyer@gmail.com
+extra-source-files:  CHANGELOG.md
+
+library
+  exposed-modules:     Parser
+  build-depends:       base ^>=4.14.1.0
+  hs-source-dirs:      src
+  default-language:    Haskell2010
+
+executable gentoo-atom-parser
+  main-is:             Main.hs
+  build-depends:       base ^>=4.14.1.0, gentoo-atom-parser
+  default-language:    Haskell2010
+
+test-suite gentoo-atom-parser-test
+  default-language:    Haskell2010
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      tests
+  main-is:             MyLibTest.hs
+  build-depends:       base ^>=4.14.1.0
